@@ -1,0 +1,3 @@
+{"id": "speed_short", "category": "generation", "prompt": "List exactly three benefits of running LLMs locally. One sentence each.", "max_tokens": 128}
+{"id": "speed_medium", "category": "generation", "prompt": "Explain the difference between latency and throughput for LLM inference in 2-3 paragraphs. Use concrete numbers as examples.", "max_tokens": 256}
+{"id": "speed_long", "category": "generation", "prompt": "Write a step-by-step guide (5 steps) for benchmarking a local language model on your own hardware. Mention warmup runs, token counts, and what metrics to capture.", "max_tokens": 512}

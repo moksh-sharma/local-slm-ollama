@@ -1,0 +1,80 @@
+[
+  {
+    "id": "math_multiply",
+    "category": "reasoning",
+    "prompt": "What is 17 * 23? Reply with only the number.",
+    "checks": [
+      {
+        "type": "contains",
+        "value": "391"
+      }
+    ]
+  },
+  {
+    "id": "math_word",
+    "category": "reasoning",
+    "prompt": "A train travels 120 miles in 2 hours. What is its average speed in mph? Reply with only the number.",
+    "checks": [
+      {
+        "type": "contains",
+        "value": "60"
+      }
+    ]
+  },
+  {
+    "id": "json_shape",
+    "category": "structured",
+    "prompt": "Return valid JSON only with keys \"status\" (string) and \"count\" (integer). status must be \"ok\" and count must be 42.",
+    "checks": [
+      {
+        "type": "json_has",
+        "keys": [
+          "status",
+          "count"
+        ]
+      },
+      {
+        "type": "contains",
+        "value": "ok"
+      }
+    ]
+  },
+  {
+    "id": "summarize",
+    "category": "comprehension",
+    "prompt": "Summarize in one sentence: Local inference keeps prompts and outputs on-device, which helps with privacy and removes per-token API fees, but you pay with hardware cost and often slower time-to-first-token on consumer GPUs.",
+    "checks": [
+      {
+        "type": "contains_any",
+        "values": [
+          "privacy",
+          "on-device",
+          "local",
+          "offline"
+        ]
+      },
+      {
+        "type": "contains_any",
+        "values": [
+          "cost",
+          "hardware",
+          "latency",
+          "slower",
+          "fee"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "instruction",
+    "category": "instruction_following",
+    "prompt": "Reply with exactly two bullet points. Each bullet must start with \"- \". Topic: why cold-start latency matters for chat UX.",
+    "checks": [
+      {
+        "type": "regex",
+        "pattern": "^- .+\\n- .+",
+        "flags": "multiline"
+      }
+    ]
+  }
+]
