@@ -25,11 +25,17 @@ cd local-slm-ollama
 python -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
 
+cp .env.example .env   # if you have not already
+
+# Web UI (chat, compare, reports)
+slm-web
+# → open http://127.0.0.1:8765
+
 # Try without Ollama (synthetic timings + mock answers)
 export MOCK_OLLAMA=true
 slm-compare
 
-# Interactive chat
+# Interactive chat (terminal)
 slm-chat
 ```
 
@@ -58,6 +64,7 @@ Reports land in `data/results/latest.md` and `latest.json`.
 
 | Command | Purpose |
 |---------|---------|
+| `slm-web` | Browser UI at http://127.0.0.1:8765 (chat, compare, report) |
 | `slm-chat` | Offline REPL with per-turn latency stats |
 | `slm-benchmark --model llama3.2:3b` | Latency/throughput for one model |
 | `slm-compare` | Benchmark + quality eval for 3 models |
@@ -99,6 +106,8 @@ After `slm-compare`, read the generated tradeoff section in the report. See [doc
 | `src/local_slm/ollama_client.py` | Streaming Ollama client + mock mode |
 | `src/local_slm/benchmark/` | Runner, metrics, quality checks, reports |
 | `src/local_slm/chat.py` | Interactive offline chat |
+| `src/local_slm/api.py` | FastAPI backend for the web UI |
+| `src/local_slm/static/` | Web frontend (HTML/CSS/JS) |
 | `data/benchmark_prompts.jsonl` | Standard speed prompts |
 | `data/quality_tasks.json` | Quality eval tasks |
 | `data/results/` | Comparison JSON + markdown output |

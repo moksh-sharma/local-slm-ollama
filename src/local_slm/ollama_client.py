@@ -6,6 +6,7 @@ import json
 import platform
 import re
 import time
+from collections.abc import Iterator
 from typing import Any
 
 import httpx
@@ -228,6 +229,79 @@ class OllamaClient:
         tps = completion_tokens / (gen_ms / 1000) if gen_ms > 0 else 0.0
 
         return GenerationResult(
+            model=model,
+            prompt=prompt,
+            response=response,
+            prompt_tokens=prompt_tokens,
+            completion_tokens=completion_tokens,
+            total_tokens=prompt_tokens + completion_tokens,
+            time_to_first_token_ms=ttft_ms,
+            total_latency_ms=total_ms,
+            tokens_per_second=tps,
+        )
+
+    def generate_stream(
+        self,
+        model: str,
+        prompt: str,
+        *,
+        max_tokens: int | None = None,
+        temperature: float = 0.2,
+    ) -> Iterator[str | GenerationResult]:
+        """Yield text chunks, then a final GenerationResult."""
+        max_tokens = max_tokens or settings.benchmark_max_tokens
+
+        if self.mock:
+            result = self._mock_generate(model, prompt, max_tokens)
+            words = result.response.split()
+            step = max(1, len(words) // 12)
+            for i in range(0, len(words), step):
+                yield " ".join(words[i : i + step]) + (" " if i + step < len(words) else "")
+            yield result
+            return
+
+        payload = {
+            "model": model,
+            "prompt": prompt,
+            "stream": True,
+            "options": {"num_predict": max_tokens, "temperature": temperature},
+        }
+        start = time.perf_counter()
+        ttft_ms: float | None = None
+        chunks: list[str] = []
+        prompt_tokens = 0
+        completion_tokens = 0
+
+        with httpx.Client(timeout=self.timeout) as client:
+            with client.stream("POST", f"{self.base_url}/api/generate", json=payload) as resp:
+                resp.raise_for_status()
+                for line in resp.iter_lines():
+                    if not line:
+                        continue
+                    data = json.loads(line)
+                    if data.get("response"):
+                        if ttft_ms is None:
+                            ttft_ms = (time.perf_counter() - start) * 1000
+                        piece = data["response"]
+                        chunks.append(piece)
+                        yield piece
+                    if data.get("prompt_eval_count"):
+                        prompt_tokens = data["prompt_eval_count"]
+                    if data.get("eval_count"):
+                        completion_tokens = data["eval_count"]
+                    if data.get("done"):
+                        break
+
+        total_ms = (time.perf_counter() - start) * 1000
+        response = "".join(chunks)
+        if not prompt_tokens:
+            prompt_tokens = _estimate_tokens(prompt)
+        if not completion_tokens:
+            completion_tokens = _estimate_tokens(response)
+        gen_ms = total_ms - (ttft_ms or 0)
+        tps = completion_tokens / (gen_ms / 1000) if gen_ms > 0 else 0.0
+
+        yield GenerationResult(
             model=model,
             prompt=prompt,
             response=response,

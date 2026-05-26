@@ -96,6 +96,17 @@ def compare_main() -> None:
     console.print(f"\nReports written to {args.output_dir}/latest.md")
 
 
+def web_main() -> None:
+    import uvicorn
+
+    from local_slm.api import app
+
+    console.print(
+        "[bold]Local SLM Web[/bold] → [link=http://127.0.0.1:8765]http://127.0.0.1:8765[/link]"
+    )
+    uvicorn.run(app, host="127.0.0.1", port=8765, log_level="info")
+
+
 def report_main() -> None:
     parser = argparse.ArgumentParser(description="Render markdown from a saved comparison JSON")
     parser.add_argument(
